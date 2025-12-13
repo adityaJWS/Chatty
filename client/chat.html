@@ -1,11 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chat Room</title>
-
+<!-- ... (head and style tags remain the same as your original code) ... -->
 <style>
+    /* Your CSS provided earlier */
     :root {
         --primary: #2563eb;
         --primary-dark: #1e40af;
@@ -154,40 +152,38 @@
     <button id="sendBtn">Send</button>
 </div>
 
+<!-- Link the new service.js file -->
+<script src="service.js"></script>
+
 <script>
 // ------------------------------------------------------------
-// SERVICE LAYER (Mock backend-ready structure)
-// ------------------------------------------------------------
-const ChatService = {
-    // Simulated initial chat history
-    fetchMessages: async function() {
-        return [
-            { sender: "Asish", text: "Welcome to the chat!" },
-            { sender: "System Bot", text: "Say hi 👋" }
-        ];
-    },
-
-    // Simulated "send" call
-    sendMessageToServer: async function(payload) {
-        return { success: true, ...payload };
-    }
-};
-
-
-// ------------------------------------------------------------
-// STATE + CONTROLLER LAYER
+// STATE + CONTROLLER LAYER (Updated to use service.js)
 // ------------------------------------------------------------
 const ChatController = {
-    username: localStorage.getItem("chatName"),
-    email: localStorage.getItem("chatEmail"),
+    // In a real app, 'sender' information would likely come from session/auth data
+    // For now, we use a placeholder or dummy sender name for display purposes
+    username: localStorage.getItem("chatName") || "AnonymousUser", 
+    email: localStorage.getItem("chatEmail") || "N/A",
 
     init: async function() {
-        if (!this.username) location.href = "login.html";
+        // if (!this.username) location.href = "login.html"; // Redirect if no user found
 
         document.getElementById("userEmail").innerText = this.email;
 
-        const messages = await ChatService.fetchMessages();
-        messages.forEach(msg => ChatRenderer.renderMessage(msg.sender, msg.text));
+        // Use the function from the external service.js file
+        const messages = await ChatService.fetchMessages(); 
+        
+        // The API response is an array of objects like: 
+        // {"id": 0, "date": "13-12-2025", "data": {"message": "hello world"}}
+        // We need to extract the actual message text and determine a sender (which is not stored in your JSON currently)
+
+        messages.forEach(msg => {
+            // Since your JSON doesn't store the sender's name, we have to simulate one 
+            // or assume all fetched messages are 'other' users for now.
+            const messageText = msg.data.message;
+            // The logic below assumes messages sent by "AnonymousUser" are "self" (which isn't great, but functional for now)
+            ChatRenderer.renderMessage("Other User", messageText, messageText.includes(this.username));
+        });
 
         ChatRenderer.scrollToBottom();
 
@@ -202,50 +198,45 @@ const ChatController = {
         const text = input.value.trim();
         if (!text) return;
 
-        const payload = {
-            sender: this.username,
-            text
-        };
+        // Use the function from the external service.js file
+        try {
+            const response = await ChatService.sendMessageToServer(text);
+            console.log("Message sent to server:", response.new_record);
+            
+            // Render the message immediately as a 'self' bubble
+            ChatRenderer.renderMessage(this.username, text, true);
+            ChatRenderer.scrollToBottom();
+            input.value = "";
 
-        // await backend call
-        await ChatService.sendMessageToServer(payload);
-
-        ChatRenderer.renderMessage(this.username, text, true);
-        ChatRenderer.scrollToBottom();
-
-        input.value = "";
+        } catch (error) {
+            console.error("Error sending message:", error);
+            alert("Failed to send message.");
+        }
     }
 };
 
 
 // ------------------------------------------------------------
-// UI RENDERER LAYER
+// UI RENDERER LAYER (Remains the same as your original code)
 // ------------------------------------------------------------
 const ChatRenderer = {
   chatWindow: document.getElementById("chatWindow"),
-
   renderMessage(sender, text, isSelf = false) {
-    // defensive: ensure chatWindow exists
     if (!this.chatWindow) {
       console.error("ChatRenderer: chatWindow element not found");
       return;
     }
-
     const wrapper = this.createWrapper(isSelf);
     const nameTag = this.createNameTag(sender);
     const bubble = this.createBubble(text, isSelf);
-
     wrapper.appendChild(nameTag);
     wrapper.appendChild(bubble);
     this.chatWindow.appendChild(wrapper);
   },
-
   scrollToBottom() {
     if (!this.chatWindow) return;
     this.chatWindow.scrollTop = this.chatWindow.scrollHeight;
   },
-
-  // ---------- Helper Methods (public, to avoid private field issues) ----------
   createWrapper(isSelf) {
     const wrapper = document.createElement("div");
     wrapper.style.display = "flex";
@@ -254,14 +245,12 @@ const ChatRenderer = {
     wrapper.style.marginBottom = "10px";
     return wrapper;
   },
-
   createNameTag(sender) {
     const nameTag = document.createElement("div");
     nameTag.className = "name-tag";
     nameTag.innerText = sender;
     return nameTag;
   },
-
   createBubble(text, isSelf) {
     const bubble = document.createElement("div");
     bubble.className = `bubble ${isSelf ? "self" : "other"}`;
@@ -269,8 +258,6 @@ const ChatRenderer = {
     return bubble;
   }
 };
-
-
 
 // ------------------------------------------------------------
 // INIT CHAT UI

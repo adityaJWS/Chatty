@@ -1,0 +1,40 @@
+{
+    "data": [
+        {
+            "id": 0,
+            "date": "13-12-2025",
+            "data": {
+                "message": "hello world"
+            }
+        },
+        {
+            "id": 1,
+            "date": "13-12-2025",
+            "data": {
+                "message": "hello world"
+            }
+        },
+        {
+            "id": 2,
+            "date": "13-12-2025",
+            "data": {
+                "message": "hello aditya"
+            }
+        },
+        {
+            "id": 3,
+            "date": "13-12-2025",
+            "data": {
+                "message": "hello aditya"
+            }
+        }
+    ],
+    "auth": [
+        {
+            "id": 0,
+            "username": "Something",
+            "email-id": "somewhere@nowhere.com",
+            "password": 123456789
+        }
+    ]
+}
